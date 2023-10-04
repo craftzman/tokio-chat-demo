@@ -23,20 +23,22 @@ async fn main() {
             let mut line = String::new();
             
             loop {
-                let bytes_read = reader.read_line(&mut line).await.unwrap();
-                if bytes_read == 0 {
-                    break;
+                tokio::select! {
+                    result = reader.read_line(&mut line) => {
+                        if result.unwrap() == 0 {
+                            break;
+                        }
+
+                        tx.send(line.clone()).unwrap();
+                        line.clear();
+                    }
+                    result = rx.recv() => {
+                        let msg = result.unwrap();
+
+                        writer.write_all(msg.as_bytes()).await.unwrap();
+                    }
                 }
-
-                tx.send(line.clone()).unwrap();
-
-                let msg = rx.recv().await.unwrap();
-    
-                writer.write_all(msg.as_bytes()).await.unwrap();
-                line.clear();
             }
-        });
-        
+        });  
     }
-    
 }
