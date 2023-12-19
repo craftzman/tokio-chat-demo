@@ -28,7 +28,6 @@ async fn main() {
                         if result.unwrap() == 0 {
                             break;
                         }
-
                         tx.send(line.clone()).unwrap();
                         line.clear();
                     }
